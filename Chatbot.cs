@@ -8,26 +8,20 @@ using POE_Part1_Chatbot.Core;
 
 namespace POE_Part1_Chatbot
 {
-    /// <summary>
     /// Core chatbot logic - manages user interaction loop.
     /// Coordinates UI, input processing, and response generation.
-    /// </summary>
     internal class Chatbot
     {
         private string _userName; // Stores authenticated user's name
 
-        /// <summary>
         /// Starts the main chat loop after initialization.
-        /// </summary>
         public void Start()
         {
             InitializeUser();
             RunChatLoop();
         }
 
-        /// <summary>
         /// Collects user information and displays welcome message.
-        /// </summary>
         private void InitializeUser()
         {
             ConsoleUI.PrintDivider();
@@ -36,9 +30,7 @@ namespace POE_Part1_Chatbot
             ConsoleUI.TypeLine($"\nWelcome, {_userName}! I'm here to help you stay cyber-safe.");
         }
 
-        /// <summary>
         /// Continuous loop for processing user input until 'exit' command.
-        /// </summary>
         private void RunChatLoop()
         {
             string input;
@@ -63,8 +55,6 @@ namespace POE_Part1_Chatbot
             }
 
             ConsoleUI.TypeLine("Goodbye! Stay safe online.");
-
-
         }
     }
 }
