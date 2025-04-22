@@ -6,16 +6,12 @@ using System.Threading.Tasks;
 
 namespace POE_Part1_Chatbot.Core
 {
-    /// <summary>
     /// Static response generator with predefined answers for cybersecurity topics.
     /// Implements simple intent recognition via keyword matching.
-    /// </summary>
-    ///
     internal class ResponseManager
     {
-        /// <summary>
         /// Maps user input to appropriate responses using flexible keyword matching.
-        /// </summary>
+
         /// <param name="input">Normalized user input (lowercase, trimmed)</param>
         /// <param name="userName">For personalized responses</param>
         /// <returns>Contextual response string</returns>
