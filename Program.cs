@@ -8,7 +8,6 @@ namespace POE_Part1_Chatbot
         
         /// Main entry point for the chatbot application.
         /// Uses async/await for non-blocking audio playback.
-        /// </summary>
         static async Task Main(string[] args)
         {
             try
