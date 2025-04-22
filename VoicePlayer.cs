@@ -7,15 +7,12 @@ using NAudio.Wave;
 
 namespace POE_Part1_Chatbot
 {
-    /// <summary>
     /// Handles audio playback using NAudio library.
     /// Manages WAV file loading and streaming with error handling.
-    /// </summary>
     internal class VoicePlayer
     {
-        /// <summary>
         /// Asynchronously plays a WAV greeting audio file.
-        /// </summary>
+
         /// <param name="filePath">Relative path to the WAV file</param>
         /// <returns>Task for async playback control</returns>
         public static async Task PlayGreeting(string filePath)
