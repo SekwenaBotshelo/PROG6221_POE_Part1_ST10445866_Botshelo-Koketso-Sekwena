@@ -5,7 +5,7 @@ namespace POE_Part1_Chatbot
 {
     internal class Program
     {
-        /// <summary>
+        
         /// Main entry point for the chatbot application.
         /// Uses async/await for non-blocking audio playback.
         /// </summary>
