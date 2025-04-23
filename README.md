@@ -1,4 +1,7 @@
 # POE_Part1_Chatbot
+
+Author: Botshelo Koketso Sekwena - ST10445866
+
 Referancing:
 
 1.) Andrew Troelsen, Phil Japikse. (2022). Pro C# 10 with .NET 6 - 
