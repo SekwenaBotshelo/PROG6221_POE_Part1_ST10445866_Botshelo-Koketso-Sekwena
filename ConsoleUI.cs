@@ -31,7 +31,7 @@ namespace POE_Part1_Chatbot
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(message);
-            Console.ResetColor(); 
+            Console.ResetColor();
         }
 
         /// Simulates typing animation for chatbot responses
