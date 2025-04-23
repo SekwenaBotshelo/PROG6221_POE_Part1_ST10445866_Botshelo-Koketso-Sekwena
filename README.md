@@ -1,4 +1,7 @@
 # POE_Part1_Chatbot
+
+GitHub Repository Link:
+https://github.com/SekwenaBotshelo/PROG6221_POE_Part1_ST10445866_Botshelo-Koketso-Sekwena.git 
 Referancing:
 
 1.) Andrew Troelsen, Phil Japikse. (2022). Pro C# 10 with .NET 6 - 
@@ -8,7 +11,7 @@ Referancing:
 2.) Farrell, J. (2022). JAVA Programming. Tenth ed. 200 Pier 4 Boulevard Boston,
 	MA 02210 USA: Cengage 
 
-3.) OpenAI. ìChatGPT.î Chatgpt.com, OpenAI, 2025, chatgpt.com.
+3.) OpenAI. ‚ÄúChatGPT.‚Äù Chatgpt.com, OpenAI, 2025, chatgpt.com.
 
 Project Overview:
 
