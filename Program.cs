@@ -29,8 +29,8 @@ namespace POE_Part1_Chatbot
                 AsciiArtRenderer.DisplayLogo();
 
                 // Initialize and start the chatbot
-                Chatbot bot = new Chatbot();
-                bot.Start();
+                ChatSession session = new Chatbot();
+                session.StartSession();
             }
             catch (Exception ex)
             {
