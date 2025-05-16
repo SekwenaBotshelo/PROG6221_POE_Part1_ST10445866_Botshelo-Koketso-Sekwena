@@ -46,21 +46,49 @@ namespace POE_Part1_Chatbot
         }
 
         /// Draws a border around a message (single-line version)
-        public static void PrintBorder(string message)
+        public static void PrintBorder(string message, int maxLineLength = 60)
         {
             if (!string.IsNullOrWhiteSpace(message))
             {
                 message = char.ToUpper(message[0]) + message.Substring(1);
             }
 
-            int width = message.Length + 4; // Padding on both sides
+            List<string> wrappedLines = WrapText(message, maxLineLength);
+            int width = wrappedLines.Max(line => line.Length) + 4;
+
             string top = "┌" + new string('─', width) + "┐";
-            string middle = $"│  {message}  │";
             string bottom = "└" + new string('─', width) + "┘";
 
             Console.WriteLine(top);
-            Console.WriteLine(middle);
+            foreach (string line in wrappedLines)
+            {
+                Console.WriteLine($"│  {line.PadRight(width - 4)}  │");
+            }
             Console.WriteLine(bottom);
+        }
+
+        private static List<string> WrapText(string text, int maxLineLength)
+        {
+            List<string> lines = new List<string>();
+            string[] words = text.Split(' ');
+            string line = "";
+
+            foreach (string word in words)
+            {
+                if ((line + word).Length > maxLineLength)
+                {
+                    lines.Add(line.TrimEnd());
+                    line = "";
+                }
+                line += word + " ";
+            }
+
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                lines.Add(line.TrimEnd());
+            }
+
+            return lines;
         }
     }
 }
