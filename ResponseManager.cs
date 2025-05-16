@@ -26,7 +26,7 @@ namespace POE_Part1_Chatbot.Core
                     return "I'm here to teach South African citizens about staying safe from cyber threats.";
 
                 case "what is cyber security awareness exactly":
-                    return "Understanding online risks such as malware, phishing, hacking, and scams, as well" +
+                    return "It can be described as understanding online risks such as malware, phishing, hacking, and scams, as well" +
                            " as how to safeguard your devices, personal data, and yourself, is known as " +
                            "cybersecurity awareness. To prevent falling victim to cybercrime, it entails developing" +
                            " safe online practices, identifying possible threats, and maintaining vigilance.";

@@ -38,6 +38,9 @@ namespace POE_Part1_Chatbot
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("💡 You can ask me about the following topics:");
             Console.ResetColor();
+            Console.WriteLine("- How are you");
+            Console.WriteLine("- What is your purpose");
+            Console.WriteLine("- What is cyber security awareness exactly");
             Console.WriteLine("- What is phishing");
             Console.WriteLine("- What is password safety");
             Console.WriteLine("- What is safe browsing");
@@ -51,25 +54,45 @@ namespace POE_Part1_Chatbot
             string input;
             while (true)
             {
-                ConsoleUI.PromptInput(); // Show '>' prompt
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write($"\n👤 {_userName}: ");
+                Console.ResetColor();
+
                 input = Console.ReadLine()?.ToLower().Trim();
 
-                // Exit condition
-                if (input == "exit") break;
+                if (input == "exit")
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"\n👤 {_userName} has left the chat.");
+                    Console.ResetColor();
+                    break;
+                }
 
-                // Validate input
                 if (string.IsNullOrWhiteSpace(input))
                 {
                     ConsoleUI.PrintError("Please enter a valid message.");
                     continue;
                 }
 
-                // Generate and display response
+                // Print user input with border
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"\n👤 {_userName}");
+                ConsoleUI.PrintBorder(input);
+                Console.ResetColor();
+
+                // Get bot response
                 string response = ResponseManager.GetResponse(input, _userName);
-                ConsoleUI.TypeLine(response); // Animated typing effect
+
+                // Print bot response with border
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"\n🤖 Bot");
+                ConsoleUI.PrintBorder(response);
+                Console.ResetColor();
             }
 
+            Console.ForegroundColor = ConsoleColor.Cyan;
             ConsoleUI.TypeLine("Goodbye! Stay safe online.");
+            Console.ResetColor();
         }
     }
 }

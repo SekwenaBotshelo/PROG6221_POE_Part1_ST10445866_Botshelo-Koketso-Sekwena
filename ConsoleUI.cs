@@ -44,5 +44,23 @@ namespace POE_Part1_Chatbot
             }
             Console.WriteLine();
         }
+
+        /// Draws a border around a message (single-line version)
+        public static void PrintBorder(string message)
+        {
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                message = char.ToUpper(message[0]) + message.Substring(1);
+            }
+
+            int width = message.Length + 4; // Padding on both sides
+            string top = "┌" + new string('─', width) + "┐";
+            string middle = $"│  {message}  │";
+            string bottom = "└" + new string('─', width) + "┘";
+
+            Console.WriteLine(top);
+            Console.WriteLine(middle);
+            Console.WriteLine(bottom);
+        }
     }
 }
