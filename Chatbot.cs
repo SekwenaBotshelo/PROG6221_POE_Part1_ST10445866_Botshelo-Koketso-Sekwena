@@ -55,18 +55,20 @@ namespace POE_Part1_Chatbot
             while (true)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write($"\n👤 {_userName}: ");
+                Console.Write($"\n--> {_userName}: ");
                 Console.ResetColor();
 
                 input = Console.ReadLine()?.ToLower().Trim();
 
-                if (input == "exit")
+                List<string> exitKeywords = new List<string> { "exit", "quit", "bye", "goodbye", "leave", "end", "stop" };
+                if (exitKeywords.Any(keyword => input.Contains(keyword)))
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine($"\n👤 {_userName} has left the chat.");
+                    Console.WriteLine($"\n--> {_userName} has left the chat.");
                     Console.ResetColor();
                     break;
                 }
+
 
                 if (string.IsNullOrWhiteSpace(input))
                 {
@@ -76,7 +78,7 @@ namespace POE_Part1_Chatbot
 
                 // Print user input with border
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"\n👤 {_userName}");
+                Console.WriteLine($"\n--> {_userName}");
                 ConsoleUI.PrintBorder(input);
                 Console.ResetColor();
 
@@ -85,7 +87,7 @@ namespace POE_Part1_Chatbot
 
                 // Print bot response with border
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine($"\n🤖 Bot");
+                Console.WriteLine($"\n--> Bot");
                 ConsoleUI.PrintBorder(response);
                 Console.ResetColor();
             }

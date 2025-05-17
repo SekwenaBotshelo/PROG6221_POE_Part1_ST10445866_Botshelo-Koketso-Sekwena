@@ -10,11 +10,21 @@ namespace POE_Part1_Chatbot.Core
     /// Implements simple intent recognition via keyword matching.
     internal class ResponseManager
     {
+        // ✅ Keyword-based fallback response dictionary
+        private static readonly Dictionary<string, string> _keywordResponses = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "purpose", "The purpose of this chatbot is to raise awareness about online safety and help you recognize potential cyber threats." },
+            { "cyber security awareness", "Cybersecurity awareness involves understanding online threats and knowing how to protect yourself." },
+            { "phishing", "Phishing is a fraudulent attempt to get your sensitive information by pretending to be a trustworthy source. Always verify links and email senders." },
+            { "password safety", "Use strong, unique passwords for each account. Avoid using personal info and change your passwords regularly." },
+            { "password", "Use complex passwords with a mix of letters, numbers, and symbols. Avoid reusing the same password across sites." },
+            { "safe browsing", "Use a secure browser, avoid clicking on unknown links, and make sure websites use HTTPS." },
+            { "scam", "If something feels too good to be true online, it probably is. Never share personal info with unknown contacts." },
+            { "privacy", "Always review app permissions and adjust privacy settings on your accounts to limit data sharing." }
+        };
+
         /// Maps user input to appropriate responses using flexible keyword matching.
 
-        /// <param name="input">Normalized user input (lowercase, trimmed)</param>
-        /// <param name="userName">For personalized responses</param>
-        /// <returns>Contextual response string</returns>
         public static string GetResponse(string input, string userName)
         {
             switch (input)
@@ -55,10 +65,18 @@ namespace POE_Part1_Chatbot.Core
                            " as \"safe browsing.\" Checking for a secure connection (look for \"https://\" and a padlock icon)," +
                            " avoiding dubious links or pop-ups, keeping your browser and antivirus software up to date, and not " +
                            "disclosing personal information on unfamiliar or untrusted websites are all part of it..";
-
-                default:
-                    return $"Sorry {userName}, I didn’t quite understand that. Could you rephrase?";
             }
+            // ✅ Check for any keyword-based response if no exact match
+            foreach (var keyword in _keywordResponses.Keys)
+            {
+                if (input.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                {
+                    return _keywordResponses[keyword];
+                }
+            }
+
+            // Fallback response
+            return $"Sorry {userName}, I didn’t quite understand that. Could you rephrase?";
         }
     }
 }
