@@ -36,10 +36,12 @@ namespace POE_Part1_Chatbot
         {
             ConsoleUI.PrintDivider();
             Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("💡 You can ask me about the following topics:");
+            Console.WriteLine("--> You can ask me about the following topics:");
             Console.ResetColor();
             Console.WriteLine("- How are you");
             Console.WriteLine("- What is your purpose");
+            Console.WriteLine("- What can I ask you about");
+            Console.WriteLine("- What tips can I ask about");
             Console.WriteLine("- What is cyber security awareness exactly");
             Console.WriteLine("- What is phishing");
             Console.WriteLine("- What is password safety");
