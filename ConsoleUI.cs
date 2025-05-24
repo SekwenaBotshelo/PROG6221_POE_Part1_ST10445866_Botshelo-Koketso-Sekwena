@@ -45,7 +45,7 @@ namespace POE_Part1_Chatbot
             Console.WriteLine();
         }
 
-        /// Draws a border around a message (single-line version)
+        // Draws a border around a message (single-line version)
         public static void PrintBorder(string message, int maxLineLength = 60)
         {
             if (!string.IsNullOrWhiteSpace(message))
@@ -53,14 +53,22 @@ namespace POE_Part1_Chatbot
                 message = char.ToUpper(message[0]) + message.Substring(1);
             }
 
-            List<string> wrappedLines = WrapText(message, maxLineLength);
-            int width = wrappedLines.Max(line => line.Length) + 4;
+            // Split message into lines manually if it contains '\n'
+            string[] splitByNewline = message.Split('\n');
+            List<string> allWrappedLines = new List<string>();
+
+            foreach (string line in splitByNewline)
+            {
+                allWrappedLines.AddRange(WrapText(line.Trim(), maxLineLength));
+            }
+
+            int width = allWrappedLines.Max(line => line.Length) + 4;
 
             string top = "┌" + new string('─', width) + "┐";
             string bottom = "└" + new string('─', width) + "┘";
 
             Console.WriteLine(top);
-            foreach (string line in wrappedLines)
+            foreach (string line in allWrappedLines)
             {
                 Console.WriteLine($"│  {line.PadRight(width - 4)}  │");
             }

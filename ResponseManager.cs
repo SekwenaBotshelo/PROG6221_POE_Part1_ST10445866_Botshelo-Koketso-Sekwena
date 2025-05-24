@@ -108,47 +108,44 @@ namespace POE_Part1_Chatbot.Core
 
         public static string GetResponse(string input, string userName)
         {
-            input = input.Trim().ToLower();
+            input = input.ToLower();
 
-            // --- Contextual follow-up handling ---
-            if (input.Contains("more") ||
-                input.Contains("explain") ||
-                input.Contains("what do you mean") ||
-                input.Contains("clarify"))
+            // --- Follow-up or clarification ---
+            if (input.Contains("more") || input.Contains("explain") || input.Contains("what do you mean") || input.Contains("clarify"))
             {
-                if (!string.IsNullOrEmpty(_lastTopic) && _definitions.ContainsKey(_lastTopic))
+                if (!string.IsNullOrEmpty(_lastTopic))
                 {
-                    return $"Sure! Here's more detail on {_lastTopic}: {_definitions[_lastTopic]}";
+                    if (_definitions.ContainsKey(_lastTopic))
+                        return $"Sure {userName}, here's more about {_lastTopic}: {_definitions[_lastTopic]}";
+                    else if (_topicTips.ContainsKey(_lastTopic + " tips"))
+                        return $"Here’s an extra tip on {_lastTopic}: {GetRandomTip(_lastTopic + " tips")}";
                 }
-                else
-                {
-                    return "Can you clarify what you'd like to know more about?";
-                }
+
+                return "Can you clarify what you'd like to know more about?";
             }
 
-            // Appreciation recognition
-            if (input.Contains("thank you") || input.Contains("thanks") ||
-                input.Contains("appreciate") || input.Contains("grateful") ||
-                input.Contains("thankful") || input.Contains("learnt") || input.Contains("learned"))
+            // --- Appreciation recognition ---
+            if (input.Contains("thank you") || input.Contains("thanks") || input.Contains("appreciate") ||
+                input.Contains("grateful") || input.Contains("thankful") || input.Contains("learnt") || input.Contains("learned"))
             {
-                return "You're welcome! I'm glad I could help. If you have more questions about cybersecurity, feel free to ask!";
+                return $"You're welcome, {userName}! I'm here whenever you're curious about cybersecurity.";
             }
 
-            // --- Basic questions ---
+            // --- Common questions ---
             switch (input)
             {
                 case "how are you":
-                    return "I'm just a bot, but I'm functioning perfectly! Thanks for asking.";
+                    return "I'm functioning at full capacity, thanks for asking!";
 
                 case "what is your purpose":
                     _lastTopic = "purpose";
                     return _definitions["purpose"];
 
                 case "what can i ask you about":
-                    return "You can ask me for definitions of terms like phishing, password safety, or privacy, or request tips by typing something like 'phishing tips' or 'privacy tips'.";
+                    return "You can ask for *definitions* like 'what is phishing' or *tips* like 'password tips'. I'm here to help you understand online safety.";
 
                 case "what tips can i ask about":
-                    return "You can ask for tips on phishing, password safety, safe browsing, scams, or privacy. Just type a phrase like 'password tips'.";
+                    return "Tips available include: phishing, password safety, safe browsing, scams, and privacy. Just type a topic followed by 'tips'.";
             }
 
             // --- Tip Matching ---
@@ -156,18 +153,15 @@ namespace POE_Part1_Chatbot.Core
             {
                 if (input.Contains(topic))
                 {
-                    _lastTopic = topic.Replace(" tips", ""); // Update context without "tips"
-                    var tips = _topicTips[topic];
-                    Random rand = new Random();
-                    int index = rand.Next(tips.Count);
-                    return tips[index];
+                    _lastTopic = topic.Replace(" tips", "");
+                    return GetRandomTip(topic);
                 }
             }
 
             // --- Definition Matching ---
             foreach (var keyword in _definitions.Keys)
             {
-                if (input.Contains(keyword))
+                if (input.Contains(keyword) || input.Contains("what is " + keyword) || input.Contains("define " + keyword))
                 {
                     _lastTopic = keyword;
                     return _definitions[keyword];
@@ -175,7 +169,17 @@ namespace POE_Part1_Chatbot.Core
             }
 
             // --- Default fallback ---
-            return $"Sorry {userName}, I didn’t quite understand that. You can ask me about cybersecurity topics or request tips!";
+            return $"Sorry {userName}, I didn’t quite catch that. You can ask me about cybersecurity terms or request safety tips!";
+        }
+
+        private static string GetRandomTip(string topic)
+        {
+            if (_topicTips.TryGetValue(topic, out var tips))
+            {
+                Random rand = new Random();
+                return tips[rand.Next(tips.Count)];
+            }
+            return "Sorry, I don’t have any tips on that topic right now.";
         }
     }
 }

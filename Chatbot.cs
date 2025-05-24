@@ -42,8 +42,7 @@ namespace POE_Part1_Chatbot
             }
         }
 
-
-        /// Creating the Menu feature for the user
+        // Creating the Menu feature for the user
         private void ShowMenu()
         {
             ConsoleUI.PrintDivider();
@@ -62,7 +61,8 @@ namespace POE_Part1_Chatbot
             ConsoleUI.PrintDivider();
         }
 
-        /// Continuous loop for processing user input until 'exit' command.
+        bool awaitingTipConfirmation = false;
+        // Continuous loop for processing user input until 'exit' command.
         private void RunChatLoop()
         {
             string input;
@@ -156,6 +156,7 @@ namespace POE_Part1_Chatbot
                     if (input.Contains("tip") || input.Contains("advice"))
                     {
                         response += $"\nBy the way, since you're interested in {favTopic}, would you like tips on that?";
+                        awaitingTipConfirmation = true; // Next input may be "yes"
                     }
 
                     if (input.Contains("who am I") || input.Contains("what's my name"))
@@ -163,16 +164,37 @@ namespace POE_Part1_Chatbot
                         response += $"\nYou're {_userName}, and your favorite cyber topic is {favTopic}.";
                     }
                 }
-                else if (input.Contains("who am I") || input.Contains("what's my name"))
-                {
-                    response += $"\nYou're {_userName}, and you haven't set a favorite cyber topic yet.";
-                }
 
                 // Print bot response with border
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine($"\n--> Bot");
                 ConsoleUI.PrintBorder(response);
                 Console.ResetColor();
+
+                // Place this HERE — immediately after displaying the response
+                if (awaitingTipConfirmation)
+                {
+                    ConsoleUI.PromptInput(); // Prompt for "yes/no"
+                    string confirmInput = Console.ReadLine()?.ToLower().Trim();
+
+                    string[] affirmatives = { "yes", "yes please", "sure", "ok", "okay", "yep", "yeah", "alright" };
+
+                    if (affirmatives.Any(a => confirmInput.Contains(a)))
+                    {
+                        string tipsResponse = ResponseManager.GetResponse(favTopic + " tips", _userName);
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"\n--> Bot");
+                        ConsoleUI.PrintBorder(tipsResponse);
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"\n--> Bot");
+                        ConsoleUI.PrintBorder("Okay, let me know if you want tips later!");
+                        Console.ResetColor();
+                    }
+                }
             }
 
             Console.ForegroundColor = ConsoleColor.Cyan;
