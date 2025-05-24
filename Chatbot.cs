@@ -63,6 +63,22 @@ namespace POE_Part1_Chatbot
 
         bool awaitingTipConfirmation = false;
         // Continuous loop for processing user input until 'exit' command.
+
+        // Input Validation
+        private string SanitizeInput(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            // Basic sanitization
+            return input.Trim()
+                       .Replace("\"", "")
+                       .Replace("\\", "")
+                       .Substring(0, Math.Min(input.Length, 500)); // Limit input length
+        }
+
         private void RunChatLoop()
         {
             string input;
@@ -73,6 +89,15 @@ namespace POE_Part1_Chatbot
                 Console.ResetColor();
 
                 input = Console.ReadLine()?.ToLower().Trim();
+
+                input = Console.ReadLine()?.ToLower();
+                input = SanitizeInput(input); // Add this line right after reading input
+
+                if (string.IsNullOrEmpty(input))
+                {
+                    ConsoleUI.PrintError("Please enter a valid message.");
+                    continue;
+                }
 
                 // Exit conditions
                 List<string> exitKeywords = new List<string> { "exit", "quit", "bye", "goodbye", "leave", "end", "stop" };

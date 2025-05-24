@@ -106,9 +106,101 @@ namespace POE_Part1_Chatbot.Core
             }
         };
 
+        // Sentiment keywords dictionary
+        private static readonly Dictionary<string, List<string>> _sentimentKeywords = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "worried", new List<string> { "worried", "anxious", "nervous", "concerned", "scared", "afraid" } },
+            { "frustrated", new List<string> { "frustrated", "angry", "annoyed", "mad", "upset", "irritated" } },
+            { "confused", new List<string> { "confused", "unsure", "don't understand", "puzzled", "lost" } },
+            { "curious", new List<string> { "curious", "interested", "wondering", "want to know", "tell me more" } }
+        };
+
+                // Empathetic responses dictionary
+                private static readonly Dictionary<string, string> _empatheticResponses = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "worried", "It's completely understandable to feel that way about {0}. Let me share some information to help put your mind at ease." },
+            { "frustrated", "I hear your frustration about {0}. Cybersecurity can be challenging, but we'll work through it together." },
+            { "confused", "It's okay to feel unsure about {0}. I'll explain it in a simpler way to help you understand." },
+            { "curious", "That's a great question about {0}! I'm happy to share what I know to satisfy your curiosity." }
+        };
+
+        // Add this dictionary for varied default responses
+        private static readonly List<string> _defaultResponses = new List<string>
+        {
+            $"I'm not sure I understand. Can you try rephrasing that?",
+            $"I didn't quite catch that. Could you ask about cybersecurity terms or safety tips?",
+            $"Let me try to help - could you rephrase your question about online safety?",
+            $"I specialize in cybersecurity topics. Could you ask about things like phishing or password safety?",
+            $"Hmm, I'm not following. Try questions like 'What is phishing?' or 'Give me password tips'"
+        };
+
+        // Modify the GetResponse method's final return (replace the current default)
+        private static string GetDefaultResponse(string userName)
+{
+    Random rand = new Random();
+    string response = _defaultResponses[rand.Next(_defaultResponses.Count)];
+    
+    // Only add help suggestion 50% of the time to avoid repetition
+    if (rand.Next(2) == 0) 
+    {
+        response += "\nTry asking about: phishing, passwords, scams, or privacy.";
+    }
+    
+    return response;
+}
+
+
+
+        private static string DetectSentiment(string input)
+        {
+            foreach (var sentiment in _sentimentKeywords)
+            {
+                if (sentiment.Value.Any(keyword => input.Contains(keyword)))
+                {
+                    return sentiment.Key;
+                }
+            }
+            return null;
+        }
+
         public static string GetResponse(string input, string userName)
         {
             input = input.ToLower();
+
+            // --- Sentiment Detection and Response ---
+            string detectedSentiment = DetectSentiment(input);
+            string detectedTopic = null;
+
+            // Find the topic being discussed (if any)
+            foreach (var keyword in _definitions.Keys.Concat(_topicTips.Keys.Select(k => k.Replace(" tips", ""))))
+            {
+                if (input.Contains(keyword))
+                {
+                    detectedTopic = keyword;
+                    break;
+                }
+            }
+
+            // If sentiment and topic detected, return empathetic response
+            if (!string.IsNullOrEmpty(detectedSentiment) && !string.IsNullOrEmpty(detectedTopic))
+            {
+                _lastTopic = detectedTopic;
+                string empatheticResponse = string.Format(_empatheticResponses[detectedSentiment], detectedTopic);
+
+                // For negative sentiments, append actual information
+                if (detectedSentiment != "curious")
+                {
+                    if (_definitions.ContainsKey(detectedTopic))
+                    {
+                        empatheticResponse += " " + _definitions[detectedTopic];
+                    }
+                    else if (_topicTips.ContainsKey(detectedTopic + " tips"))
+                    {
+                        empatheticResponse += " Here's a tip: " + GetRandomTip(detectedTopic + " tips");
+                    }
+                }
+                return empatheticResponse;
+            }
 
             // --- Follow-up or clarification ---
             if (input.Contains("more") || input.Contains("explain") || input.Contains("what do you mean") || input.Contains("clarify"))
@@ -118,9 +210,8 @@ namespace POE_Part1_Chatbot.Core
                     if (_definitions.ContainsKey(_lastTopic))
                         return $"Sure {userName}, here's more about {_lastTopic}: {_definitions[_lastTopic]}";
                     else if (_topicTips.ContainsKey(_lastTopic + " tips"))
-                        return $"Here’s an extra tip on {_lastTopic}: {GetRandomTip(_lastTopic + " tips")}";
+                        return $"Here's an extra tip on {_lastTopic}: {GetRandomTip(_lastTopic + " tips")}";
                 }
-
                 return "Can you clarify what you'd like to know more about?";
             }
 
@@ -169,17 +260,27 @@ namespace POE_Part1_Chatbot.Core
             }
 
             // --- Default fallback ---
-            return $"Sorry {userName}, I didn’t quite catch that. You can ask me about cybersecurity terms or request safety tips!";
+            //return $"Sorry {userName}, I didn't quite catch that. You can ask me about cybersecurity terms or request safety tips!";
+
+            // Replace the current default return with:
+            return GetDefaultResponse(userName);
         }
 
         private static string GetRandomTip(string topic)
         {
-            if (_topicTips.TryGetValue(topic, out var tips))
+            try
             {
-                Random rand = new Random();
-                return tips[rand.Next(tips.Count)];
+                if (_topicTips.TryGetValue(topic, out var tips) && tips?.Count > 0)
+                {
+                    Random rand = new Random();
+                    return tips[rand.Next(tips.Count)];
+                }
+                return "I don't have tips on that specific topic right now.";
             }
-            return "Sorry, I don’t have any tips on that topic right now.";
+            catch
+            {
+                return "My tips aren't accessible at the moment. Try asking about general cybersecurity instead.";
+            }
         }
     }
 }
