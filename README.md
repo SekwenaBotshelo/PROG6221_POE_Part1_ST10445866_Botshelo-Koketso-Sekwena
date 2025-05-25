@@ -24,9 +24,13 @@ Technical Highlights:
 The C# code used to build this project is clear and modular. For convenience, logic is separated into several classes:
 
 1.) Audio playback is handled by VoicePlayer.
+
 2.) In AsciiArtRenderer, the logo is displayed.
+
 3.) Animations and formatting are controlled by ConsoleUI.
+
 4.) The chat loop is operated by a chatbot.
+
 5.) Topic-based responses are produced using ResponseManager.
 
 In Summary:
