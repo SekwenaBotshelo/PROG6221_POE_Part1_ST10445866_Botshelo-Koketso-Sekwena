@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using POE_Part1_Chatbot.Core;
 
-
 namespace POE_Part1_Chatbot
 {
     /// Core chatbot logic - manages user interaction loop.
@@ -13,8 +12,8 @@ namespace POE_Part1_Chatbot
     internal class Chatbot : ChatSession
     {
         private string _userName; // Stores authenticated user's name
-        private Dictionary<string, string> _userPreferences = new Dictionary<string, string>(); // Stores chatbot’s memory for the session
-
+        private Dictionary<string, string> _userPreferences = new Dictionary<string, string>(); // Stores chatbot's memory for the session
+        private bool _awaitingTipConfirmation = false;
 
         /// Starts the main chat loop after initialization.
         public override void StartSession()
@@ -53,16 +52,16 @@ namespace POE_Part1_Chatbot
             Console.WriteLine("- What is your purpose");
             Console.WriteLine("- What can I ask you about");
             Console.WriteLine("- What tips can I ask about");
-            Console.WriteLine("- What is cyber security awareness exactly");
+            Console.WriteLine("- What is cyber security awareness");
             Console.WriteLine("- What is phishing");
             Console.WriteLine("- What is password safety");
             Console.WriteLine("- What is safe browsing");
+            Console.WriteLine("- What is privacy");
+            Console.WriteLine("- What is a scam");
+            Console.WriteLine("- Tips about [topic]");
             Console.WriteLine("- Type 'exit' to leave the chat");
             ConsoleUI.PrintDivider();
         }
-
-        bool awaitingTipConfirmation = false;
-        // Continuous loop for processing user input until 'exit' command.
 
         // Input Validation
         private string SanitizeInput(string input)
@@ -72,11 +71,20 @@ namespace POE_Part1_Chatbot
                 return string.Empty;
             }
 
-            // Basic sanitization
-            return input.Trim()
-                       .Replace("\"", "")
-                       .Replace("\\", "")
-                       .Substring(0, Math.Min(input.Length, 500)); // Limit input length
+            // Remove special characters that might cause issues
+            var sb = new StringBuilder();
+            foreach (char c in input)
+            {
+                if (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '?' || c == '\'')
+                {
+                    sb.Append(c);
+                }
+            }
+
+            string sanitized = sb.ToString().Trim();
+
+            // Ensure we don't try to get substring longer than the string
+            return sanitized.Length > 500 ? sanitized.Substring(0, 500) : sanitized;
         }
 
         private void RunChatLoop()
@@ -88,11 +96,14 @@ namespace POE_Part1_Chatbot
                 Console.Write($"\n--> {_userName}: ");
                 Console.ResetColor();
 
-                input = Console.ReadLine()?.ToLower().Trim();
+                input = Console.ReadLine()?.Trim();
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    ConsoleUI.PrintError("Please enter a valid message.");
+                    continue;
+                }
 
-                input = Console.ReadLine()?.ToLower();
-                input = SanitizeInput(input); // Add this line right after reading input
-
+                input = SanitizeInput(input);
                 if (string.IsNullOrEmpty(input))
                 {
                     ConsoleUI.PrintError("Please enter a valid message.");
@@ -109,17 +120,10 @@ namespace POE_Part1_Chatbot
                     break;
                 }
 
-                // Input validation
-                if (string.IsNullOrWhiteSpace(input))
-                {
-                    ConsoleUI.PrintError("Please enter a valid message.");
-                    continue;
-                }
-
                 // Handle favorite topic updates
                 if (input.Contains("my favorite topic is"))
                 {
-                    string[] parts = input.Split("my favorite topic is");
+                    string[] parts = input.Split(new[] { "my favorite topic is" }, StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length > 1)
                     {
                         string newTopic = parts[1].Trim();
@@ -128,10 +132,10 @@ namespace POE_Part1_Chatbot
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         ConsoleUI.PrintBorder($"Thanks! I've updated your favorite topic to '{newTopic}'.");
                         Console.ResetColor();
-
-                        continue; // Skip to next loop
+                        continue;
                     }
                 }
+
                 // Handle other ways users express interest in topics
                 if (input.StartsWith("i'm interested in") || input.StartsWith("i am interested in"))
                 {
@@ -148,7 +152,7 @@ namespace POE_Part1_Chatbot
                     }
                 }
 
-                // Handle uncertain topic input BEFORE checking for saved preference
+                // Handle uncertain topic input
                 if (input.Contains("don't have a favorite topic") ||
                     input.Contains("not sure what my favorite topic is") ||
                     input.Contains("still exploring") ||
@@ -157,7 +161,7 @@ namespace POE_Part1_Chatbot
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     ConsoleUI.PrintBorder("No problem! You can use me to research and learn what might become your favorite topic.");
                     Console.ResetColor();
-                    continue; // Skip to next loop
+                    continue;
                 }
 
                 // Print user input with border
@@ -181,7 +185,7 @@ namespace POE_Part1_Chatbot
                     if (input.Contains("tip") || input.Contains("advice"))
                     {
                         response += $"\nBy the way, since you're interested in {favTopic}, would you like tips on that?";
-                        awaitingTipConfirmation = true; // Next input may be "yes"
+                        _awaitingTipConfirmation = true;
                     }
 
                     if (input.Contains("who am I") || input.Contains("what's my name"))
@@ -196,10 +200,10 @@ namespace POE_Part1_Chatbot
                 ConsoleUI.PrintBorder(response);
                 Console.ResetColor();
 
-                // Place this HERE — immediately after displaying the response
-                if (awaitingTipConfirmation)
+                // Handle tip confirmation if needed
+                if (_awaitingTipConfirmation)
                 {
-                    ConsoleUI.PromptInput(); // Prompt for "yes/no"
+                    ConsoleUI.PromptInput();
                     string confirmInput = Console.ReadLine()?.ToLower().Trim();
 
                     string[] affirmatives = { "yes", "yes please", "sure", "ok", "okay", "yep", "yeah", "alright" };
@@ -219,6 +223,7 @@ namespace POE_Part1_Chatbot
                         ConsoleUI.PrintBorder("Okay, let me know if you want tips later!");
                         Console.ResetColor();
                     }
+                    _awaitingTipConfirmation = false;
                 }
             }
 

@@ -19,9 +19,9 @@ namespace POE_Part1_Chatbot.Core
             { "purpose", "The purpose of this chatbot is to raise awareness about online safety and help you recognize potential cyber threats." },
             { "cyber security awareness", "It can be described as understanding online risks such as malware, phishing, hacking, and scams, as well as how to safeguard your devices, personal data, and yourself, is known as cybersecurity awareness. To prevent falling victim to cybercrime, it entails developing safe online practices, identifying possible threats, and maintaining vigilance." },
             { "phishing", "Phishing is the practice of obtaining personal information, such as passwords, bank account details, or credit card numbers, from websites that pose as trustworthy in an effort to steal your money or identity." },
-            { "password safety", "By employing strong, secure passwords in conjunction with other security policies and technologies, password safety refers to the procedures and safeguards put in place to prevent unauthorised access to user accounts and sensitive data. It is a crucial component of cybersecurity since passwords serve as the first layer of protection against data breaches and cyberattacks. " },
-            { "safe browsing", "Taking safety measures to safeguard oneself from online dangers while using the internet is known as \"safe browsing.\" This involves identifying and avoiding malware, phishing scams, and harmful websites utilising tools and techniques. \r\n" },
-            { "password", "A password is a secret string of characters used to verify a user's identity and secure access to systems and data. Strong passwords are essential to prevent unauthorized access. If you need to any tips to strengthen you password, you can ask me ;>\r\n" },
+            { "password safety", "By employing strong, secure passwords in conjunction with other security policies and technologies, password safety refers to the procedures and safeguards put in place to prevent unauthorised access to user accounts and sensitive data. It is a crucial component of cybersecurity since passwords serve as the first layer of protection against data breaches and cyberattacks." },
+            { "safe browsing", "Taking safety measures to safeguard oneself from online dangers while using the internet is known as \"safe browsing.\" This involves identifying and avoiding malware, phishing scams, and harmful websites utilising tools and techniques." },
+            { "password", "A password is a secret string of characters used to verify a user's identity and secure access to systems and data. Strong passwords are essential to prevent unauthorized access. If you need any tips to strengthen your password, you can ask me." },
             { "scam", "A scam is a dishonest scheme or fraud, often conducted online, aimed at tricking individuals into giving away personal information or money. If you don't seem to fully grasp the concept, then you may ask me on tips to detect, prevent, and mitigate scams." },
             { "privacy", "Privacy in cybersecurity refers to the right and practice of protecting personal and sensitive information from unauthorized access, use, or disclosure. To mitigate any possible infringements upon your privacy, you may ask me on any possible tips that you may need on this topic." }
         };
@@ -34,11 +34,11 @@ namespace POE_Part1_Chatbot.Core
                 {
                     "Always hover over links to verify the URL before clicking.",
                     "Never download attachments from unknown or suspicious emails.",
-                    "Phishing emails often create urgency—don’t rush to respond without verifying.",
+                    "Phishing emails often create urgency—don't rush to respond without verifying.",
                     "Enable two-factor authentication to protect your accounts.",
                     "Be wary of grammatical errors or unfamiliar greetings in emails.",
-                    "Don’t enter personal info on forms linked in unexpected emails.",
-                    "Watch for domain impersonation—‘paypa1.com’ instead of ‘paypal.com’.",
+                    "Don't enter personal info on forms linked in unexpected emails.",
+                    "Watch for domain impersonation—'paypa1.com' instead of 'paypal.com'.",
                     "Use spam filters to reduce phishing emails from reaching your inbox.",
                     "Report phishing emails to your IT department or provider.",
                     "Trust your instincts—if something feels off, investigate before acting."
@@ -52,7 +52,7 @@ namespace POE_Part1_Chatbot.Core
                     "Avoid using personal information like birthdays or names.",
                     "Update your passwords regularly and avoid reusing old ones.",
                     "Use a password manager to store and generate strong passwords securely.",
-                    "Don’t write your passwords down on paper or unencrypted files.",
+                    "Don't write your passwords down on paper or unencrypted files.",
                     "Enable two-factor authentication for sensitive accounts.",
                     "Avoid auto-saving passwords on shared/public computers.",
                     "Change default passwords on routers and devices immediately.",
@@ -92,13 +92,13 @@ namespace POE_Part1_Chatbot.Core
             {
                 "privacy tips", new List<string>
                 {
-                    "Review app permissions regularly and revoke access that isn’t necessary.",
+                    "Review app permissions regularly and revoke access that isn't necessary.",
                     "Use privacy-focused browsers and search engines to minimize tracking.",
                     "Adjust your social media privacy settings to control who sees your data.",
                     "Be mindful of what you share online, especially personal and location-based information.",
                     "Use VPNs on public Wi-Fi to encrypt your connection and protect your data.",
                     "Avoid using real names or contact details on public forums or gaming platforms.",
-                    "Disable location tracking for apps that don’t need it.",
+                    "Disable location tracking for apps that don't need it.",
                     "Encrypt your personal files and sensitive data when stored digitally.",
                     "Opt-out of data-sharing options in apps and online services.",
                     "Check if your email or credentials have been exposed on websites like haveibeenpwned.com."
@@ -115,8 +115,8 @@ namespace POE_Part1_Chatbot.Core
             { "curious", new List<string> { "curious", "interested", "wondering", "want to know", "tell me more" } }
         };
 
-                // Empathetic responses dictionary
-                private static readonly Dictionary<string, string> _empatheticResponses = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        // Empathetic responses dictionary
+        private static readonly Dictionary<string, string> _empatheticResponses = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "worried", "It's completely understandable to feel that way about {0}. Let me share some information to help put your mind at ease." },
             { "frustrated", "I hear your frustration about {0}. Cybersecurity can be challenging, but we'll work through it together." },
@@ -124,32 +124,31 @@ namespace POE_Part1_Chatbot.Core
             { "curious", "That's a great question about {0}! I'm happy to share what I know to satisfy your curiosity." }
         };
 
-        // Add this dictionary for varied default responses
+        // Default responses
         private static readonly List<string> _defaultResponses = new List<string>
         {
-            $"I'm not sure I understand. Can you try rephrasing that?",
-            $"I didn't quite catch that. Could you ask about cybersecurity terms or safety tips?",
-            $"Let me try to help - could you rephrase your question about online safety?",
-            $"I specialize in cybersecurity topics. Could you ask about things like phishing or password safety?",
-            $"Hmm, I'm not following. Try questions like 'What is phishing?' or 'Give me password tips'"
+            "I'm not sure I understand. Can you try rephrasing that?",
+            "I didn't quite catch that. Could you ask about cybersecurity terms or safety tips?",
+            "Let me try to help - could you rephrase your question about online safety?",
+            "I specialize in cybersecurity topics. Could you ask about things like phishing or password safety?",
+            "Hmm, I'm not following. Try questions like 'What is phishing?' or 'Give me password tips'",
+            "I'm designed to discuss cybersecurity topics. Maybe ask about password safety or phishing?",
+            "Could you clarify? I can help with topics like safe browsing or online scams."
         };
 
-        // Modify the GetResponse method's final return (replace the current default)
         private static string GetDefaultResponse(string userName)
-{
-    Random rand = new Random();
-    string response = _defaultResponses[rand.Next(_defaultResponses.Count)];
-    
-    // Only add help suggestion 50% of the time to avoid repetition
-    if (rand.Next(2) == 0) 
-    {
-        response += "\nTry asking about: phishing, passwords, scams, or privacy.";
-    }
-    
-    return response;
-}
+        {
+            Random rand = new Random();
+            string response = _defaultResponses[rand.Next(_defaultResponses.Count)];
 
+            // Only add help suggestion 50% of the time to avoid repetition
+            if (rand.Next(2) == 0)
+            {
+                response += "\nTry asking about: phishing, passwords, scams, or privacy.";
+            }
 
+            return response;
+        }
 
         private static string DetectSentiment(string input)
         {
@@ -226,9 +225,12 @@ namespace POE_Part1_Chatbot.Core
             switch (input)
             {
                 case "how are you":
+                case "how are you doing":
                     return "I'm functioning at full capacity, thanks for asking!";
 
                 case "what is your purpose":
+                case "what do you do":
+                case "why are you here":
                     _lastTopic = "purpose";
                     return _definitions["purpose"];
 
@@ -259,10 +261,6 @@ namespace POE_Part1_Chatbot.Core
                 }
             }
 
-            // --- Default fallback ---
-            //return $"Sorry {userName}, I didn't quite catch that. You can ask me about cybersecurity terms or request safety tips!";
-
-            // Replace the current default return with:
             return GetDefaultResponse(userName);
         }
 
