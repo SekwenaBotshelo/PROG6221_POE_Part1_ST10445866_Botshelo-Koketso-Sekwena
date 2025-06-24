@@ -12,6 +12,7 @@ namespace POE_Part1_Chatbot.Core
     {
         // Context tracker to remember the last discussed topic
         private static string _lastTopic = string.Empty;
+        private static readonly Random _random = new Random();
 
         //Definitions Dictionary
         private static readonly Dictionary<string, string> _definitions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -116,12 +117,36 @@ namespace POE_Part1_Chatbot.Core
         };
 
         // Empathetic responses dictionary
-        private static readonly Dictionary<string, string> _empatheticResponses = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        private static readonly Dictionary<string, List<string>> _empatheticResponses = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
         {
-            { "worried", "It's completely understandable to feel that way about {0}. Let me share some information to help put your mind at ease." },
-            { "frustrated", "I hear your frustration about {0}. Cybersecurity can be challenging, but we'll work through it together." },
-            { "confused", "It's okay to feel unsure about {0}. I'll explain it in a simpler way to help you understand." },
-            { "curious", "That's a great question about {0}! I'm happy to share what I know to satisfy your curiosity." }
+            { "worried", new List<string>
+                {
+                    "It's completely understandable to feel that way about {0}. Let me share some information to help put your mind at ease.",
+                    "I hear your concern about {0}. Many people feel this way, and I'm here to help you navigate it safely.",
+                    "Feeling worried about {0} is normal. Here's what you should know to feel more secure."
+                }
+            },
+            { "frustrated", new List<string>
+                {
+                    "I hear your frustration about {0}. Cybersecurity can be challenging, but we'll work through it together.",
+                    "It sounds like {0} is really bothering you. Let's tackle this one step at a time.",
+                    "I understand your frustration with {0}. Here's some information that might help clarify things."
+                }
+            },
+            { "confused", new List<string>
+                {
+                    "It's okay to feel unsure about {0}. I'll explain it in a simpler way to help you understand.",
+                    "{0} can be confusing at first. Let me break it down for you in simpler terms.",
+                    "Don't worry if {0} seems complicated. Many people find it tricky at first. Here's what it means..."
+                }
+            },
+            { "curious", new List<string>
+                {
+                    "That's a great question about {0}! I'm happy to share what I know to satisfy your curiosity.",
+                    "I love your interest in {0}! Here's what you should know about this important topic.",
+                    "You've asked a really good question about {0}. Let me share some insights with you."
+                }
+            }
         };
 
         // Default responses
@@ -133,7 +158,10 @@ namespace POE_Part1_Chatbot.Core
             "I specialize in cybersecurity topics. Could you ask about things like phishing or password safety?",
             "Hmm, I'm not following. Try questions like 'What is phishing?' or 'Give me password tips'",
             "I'm designed to discuss cybersecurity topics. Maybe ask about password safety or phishing?",
-            "Could you clarify? I can help with topics like safe browsing or online scams."
+            "Could you clarify? I can help with topics like safe browsing or online scams.",
+            "That's an interesting question, but I'm best with cybersecurity topics. Try asking about online safety!",
+            "I'm not programmed to answer that. My expertise is in cybersecurity awareness.",
+            "Let's focus on cybersecurity. What would you like to know about online safety?"
         };
 
         private static string GetDefaultResponse(string userName)
@@ -180,11 +208,24 @@ namespace POE_Part1_Chatbot.Core
                 }
             }
 
+            // Handle requests for multiple tips
+            if (input.Contains("give me some") || input.Contains("several tips") || input.Contains("a few tips"))
+            {
+                foreach (var topic in _topicTips.Keys)
+                {
+                    if (input.Contains(topic) || input.Contains(topic.Replace(" tips", "")))
+                    {
+                        _lastTopic = topic.Replace(" tips", "");
+                        return GetRandomTips(topic, 3); // Return 3 random tips
+                    }
+                }
+            }
+
             // If sentiment and topic detected, return empathetic response
             if (!string.IsNullOrEmpty(detectedSentiment) && !string.IsNullOrEmpty(detectedTopic))
             {
                 _lastTopic = detectedTopic;
-                string empatheticResponse = string.Format(_empatheticResponses[detectedSentiment], detectedTopic);
+                string empatheticResponse = GetEmpatheticResponse(detectedSentiment, detectedTopic);
 
                 // For negative sentiments, append actual information
                 if (detectedSentiment != "curious")
@@ -268,17 +309,63 @@ namespace POE_Part1_Chatbot.Core
         {
             try
             {
+                // First try exact match
                 if (_topicTips.TryGetValue(topic, out var tips) && tips?.Count > 0)
                 {
                     Random rand = new Random();
                     return tips[rand.Next(tips.Count)];
                 }
-                return "I don't have tips on that specific topic right now.";
+
+                // Then try partial match by removing " tips" suffix
+                string baseTopic = topic.Replace(" tips", "");
+                if (_topicTips.TryGetValue(baseTopic + " tips", out tips) && tips?.Count > 0)
+                {
+                    Random rand = new Random();
+                    return tips[rand.Next(tips.Count)];
+                }
+
+                return "I don't have tips on that specific topic right now. Try asking about phishing, passwords, or safe browsing.";
             }
             catch
             {
                 return "My tips aren't accessible at the moment. Try asking about general cybersecurity instead.";
             }
+        }
+
+        // Add this method to get multiple random tips
+        private static string GetRandomTips(string topic, int count)
+        {
+            if (!_topicTips.TryGetValue(topic, out var tips) || tips?.Count == 0)
+            {
+                return GetRandomTip(topic); // Fall back to single tip
+            }
+
+            // Ensure we don't request more tips than available
+            count = Math.Min(count, tips.Count);
+
+            // Shuffle the tips and take the requested number
+            var shuffledTips = tips.OrderBy(x => _random.Next()).Take(count).ToList();
+
+            StringBuilder response = new StringBuilder();
+            response.AppendLine("Here are some tips for you:");
+
+            for (int i = 0; i < shuffledTips.Count; i++)
+            {
+                response.AppendLine($"{i + 1}. {shuffledTips[i]}");
+            }
+
+            return response.ToString();
+        }
+
+        // Update the DetectSentiment method to use the new empathetic responses
+        private static string GetEmpatheticResponse(string sentiment, string topic)
+        {
+            if (_empatheticResponses.TryGetValue(sentiment, out var responses) && responses?.Count > 0)
+            {
+                Random rand = new Random();
+                return string.Format(responses[rand.Next(responses.Count)], topic);
+            }
+            return $"I understand you're feeling {sentiment} about {topic}. Let me help with that.";
         }
     }
 }

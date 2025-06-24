@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using POE_Part1_Chatbot.Core;
 
 namespace POE_Part1_Chatbot
@@ -207,20 +206,44 @@ namespace POE_Part1_Chatbot
                     string confirmInput = Console.ReadLine()?.ToLower().Trim();
 
                     string[] affirmatives = { "yes", "yes please", "sure", "ok", "okay", "yep", "yeah", "alright" };
+                    string[] negatives = { "no", "nope", "not now", "later", "maybe later" };
 
                     if (affirmatives.Any(a => confirmInput.Contains(a)))
                     {
-                        string tipsResponse = ResponseManager.GetResponse(favTopic + " tips", _userName);
+                        Random tipRand = new Random();
+                        string tipsResponse;
+
+                        if (tipRand.Next(2) == 0) // 50% chance
+                        {
+                            tipsResponse = ResponseManager.GetResponse($"give me some {favTopic} tips", _userName);
+                        }
+                        else
+                        {
+                            tipsResponse = ResponseManager.GetResponse($"{favTopic} tips", _userName);
+                        }
+
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine($"\n--> Bot");
                         ConsoleUI.PrintBorder(tipsResponse);
                         Console.ResetColor();
                     }
-                    else
+                    else if (negatives.Any(n => confirmInput.Contains(n)))
                     {
+                        string[] noProblemResponses =
+                        {
+                            "Okay, let me know if you want tips later!",
+                            "No problem! You can ask anytime.",
+                            "Sure thing! I'm here when you're ready.",
+                            "Understood! Just ask when you need tips.",
+                            "Got it! The offer stands whenever you're interested."
+                        };
+
+                        Random responseRand = new Random();
+                        string noProblemResponse = noProblemResponses[responseRand.Next(noProblemResponses.Length)];
+
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine($"\n--> Bot");
-                        ConsoleUI.PrintBorder("Okay, let me know if you want tips later!");
+                        ConsoleUI.PrintBorder(noProblemResponse);
                         Console.ResetColor();
                     }
                     _awaitingTipConfirmation = false;
