@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using POE_Part1_Chatbot.Core;
 
 namespace POE_Part1_Chatbot
 {
-    /// Core chatbot logic - manages user interaction loop.
-    /// Coordinates UI, input processing, and response generation.
     internal class Chatbot : ChatSession
     {
+        #region State Fields
         private string _userName;
-        private Dictionary<string, string> _userPreferences = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _userPreferences = new();
         private bool _awaitingTipConfirmation = false;
+        private readonly Random _random = new();
 
-        // Memory and recall fields
-        private Stack<string> _conversationHistory = new Stack<string>();
+        // Enhanced conversation tracking
         private string _currentTopic = "";
-        private bool _userExpressedConfusion = false;
+        private string _currentSentiment = "";
         private const int MAX_HISTORY = 5;
-        private Random _random = new Random();
+        private readonly Queue<string> _conversationHistory = new(MAX_HISTORY);
+        #endregion
 
-        /// Starts the main chat loop after initialization.
+        #region Core Session
         public override void StartSession()
         {
             InitializeUser();
@@ -29,139 +28,71 @@ namespace POE_Part1_Chatbot
             RunChatLoop();
         }
 
-        /// Collects user information and displays welcome message.
-        private void InitializeUser()
-        {
-            ConsoleUI.PrintDivider();
-            Console.Write("Please enter your name: ");
-            _userName = Console.ReadLine()?.Trim();
-            _userPreferences["name"] = _userName;
-
-            ConsoleUI.TypeLine($"\nWelcome, {_userName}! I'm here to help you stay cyber-safe.");
-
-            Console.Write("What is your favorite cyber security topic (e.g., phishing, passwords, browsing)? ");
-            string topic = Console.ReadLine()?.Trim().ToLower();
-            if (!string.IsNullOrWhiteSpace(topic))
-            {
-                _userPreferences["interest"] = topic;
-                _currentTopic = topic;
-                ConsoleUI.PrintBorder($"I'll remember you're interested in {topic}. " +
-                                    ResponseManager.GetTopicImportance(topic));
-            }
-        }
-
-        private void ShowMenu()
-        {
-            ConsoleUI.PrintDivider();
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("--> You can ask me about the following topics:");
-            Console.ResetColor();
-            Console.WriteLine("- How are you");
-            Console.WriteLine("- What is your purpose");
-            Console.WriteLine("- What can I ask you about");
-            Console.WriteLine("- What tips can I ask about");
-            Console.WriteLine("- What is cyber security awareness");
-            Console.WriteLine("- What is phishing");
-            Console.WriteLine("- What is password safety");
-            Console.WriteLine("- What is safe browsing");
-            Console.WriteLine("- What is privacy");
-            Console.WriteLine("- What is a scam");
-            Console.WriteLine("- Tips about [topic]");
-            Console.WriteLine("- Type 'exit' to leave the chat");
-            ConsoleUI.PrintDivider();
-        }
-
-        private string SanitizeInput(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return string.Empty;
-            }
-
-            var sb = new StringBuilder();
-            foreach (char c in input)
-            {
-                if (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '?' || c == '\'')
-                {
-                    sb.Append(c);
-                }
-            }
-
-            string sanitized = sb.ToString().Trim();
-            return sanitized.Length > 500 ? sanitized.Substring(0, 500) : sanitized;
-        }
-
         private void RunChatLoop()
         {
             string input;
             while (true)
             {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write($"\n--> {_userName}: ");
-                Console.ResetColor();
+                input = GetUserInput();
+                if (string.IsNullOrEmpty(input)) continue;
 
-                input = Console.ReadLine()?.Trim();
-                if (string.IsNullOrWhiteSpace(input))
-                {
-                    ConsoleUI.PrintError("Please enter a valid message.");
-                    continue;
-                }
+                UpdateConversationState(input);
 
-                input = SanitizeInput(input);
-                if (string.IsNullOrEmpty(input))
-                {
-                    ConsoleUI.PrintError("Please enter a valid message.");
-                    continue;
-                }
+                if (ShouldExit(input)) break;
+                if (HandleSpecialCases(input)) continue;
 
-                UpdateConversationContext(input);
-
-                if (CheckExitConditions(input)) break;
-                if (HandleTopicUpdates(input)) continue;
-
-                DisplayUserInput(input);
-
-                string response = GenerateContextAwareResponse(input);
-                DisplayResponse(response, input);  // Pass input as parameter
-
-                HandleTipConfirmation(input);  // Pass input as parameter
+                ProcessUserInput(input);
             }
 
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            ConsoleUI.TypeLine("Goodbye! Stay safe online.");
+            DisplayExitMessage();
+        }
+        #endregion
+
+        #region Input Processing
+        private string GetUserInput()
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write($"\n--> {_userName}: ");
             Console.ResetColor();
+
+            string input = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                ConsoleUI.PrintError("Please enter a valid message.");
+                return "";
+            }
+
+            return SanitizeInput(input);
         }
 
-        private void UpdateConversationContext(string input)
+        private string SanitizeInput(string input)
+        {
+            var cleanInput = new string(input
+                .Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '?' || c == '\'')
+                .ToArray())
+                .Trim();
+
+            return cleanInput.Length > 500 ? cleanInput[..500] : cleanInput;
+        }
+
+        private void UpdateConversationState(string input)
         {
             // Maintain conversation history
             if (_conversationHistory.Count >= MAX_HISTORY)
-            {
-                _conversationHistory.Pop();
-            }
-            _conversationHistory.Push(input);
+                _conversationHistory.Dequeue();
+            _conversationHistory.Enqueue(input);
 
-            // Detect user confusion or requests for more info
-            _userExpressedConfusion = input.Contains("don't understand") ||
-                                    input.Contains("explain more") ||
-                                    input.Contains("clarify") ||
-                                    input.Contains("confused");
-
-            // Detect topic mentions
-            foreach (var topic in ResponseManager.GetAllTopics())
-            {
-                if (input.Contains(topic))
-                {
-                    _currentTopic = topic;
-                    break;
-                }
-            }
+            // Detect context
+            _currentTopic = ResponseManager.DetectTopic(input) ?? _currentTopic;
+            _currentSentiment = ResponseManager.DetectSentiment(input) ?? _currentSentiment;
         }
+        #endregion
 
-        private bool CheckExitConditions(string input)
+        #region Conversation Logic
+        private bool ShouldExit(string input)
         {
-            List<string> exitKeywords = new List<string> { "exit", "quit", "bye", "goodbye", "leave", "end", "stop" };
-            if (exitKeywords.Any(keyword => input.Contains(keyword)))
+            string[] exitKeywords = { "exit", "quit", "bye", "goodbye" };
+            if (exitKeywords.Any(k => input.Contains(k)))
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"\n--> {_userName} has left the chat.");
@@ -171,54 +102,74 @@ namespace POE_Part1_Chatbot
             return false;
         }
 
-        private bool HandleTopicUpdates(string input)
+        private bool HandleSpecialCases(string input)
         {
-            if (input.Contains("my favorite topic is"))
-            {
-                string[] parts = input.Split(new[] { "my favorite topic is" }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length > 1)
-                {
-                    UpdateUserTopic(parts[1].Trim());
-                    return true;
-                }
-            }
-
-            if (input.StartsWith("i'm interested in") || input.StartsWith("i am interested in"))
-            {
-                string newTopic = input.Replace("i'm interested in", "")
-                                     .Replace("i am interested in", "")
-                                     .Trim();
-                if (!string.IsNullOrEmpty(newTopic))
-                {
-                    UpdateUserTopic(newTopic);
-                    return true;
-                }
-            }
-
-            if (input.Contains("don't have a favorite topic") ||
-                input.Contains("not sure what my favorite topic is") ||
-                input.Contains("still exploring") ||
-                input.Contains("i don't know my favorite topic"))
-            {
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                ConsoleUI.PrintBorder("No problem! You can use me to research and learn what might become your favorite topic.");
-                Console.ResetColor();
-                return true;
-            }
-
-            return false;
+            return TryUpdateUserTopic(input) ||
+                   HandleUncertainTopic(input);
         }
 
-        private void UpdateUserTopic(string newTopic)
+        private void ProcessUserInput(string input)
         {
-            _userPreferences["interest"] = newTopic;
-            _currentTopic = newTopic;
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            ConsoleUI.PrintBorder($"Thanks! I've updated your favorite topic to '{newTopic}'. " +
-                                ResponseManager.GetTopicImportance(newTopic));
-            Console.ResetColor();
+            DisplayUserInput(input);
+            string response = BuildResponse(input);
+            DisplayResponse(response);
+            HandleTipConfirmation(input);
+        }
+        #endregion
+
+        #region Response Handling
+        private string BuildResponse(string input)
+        {
+            string response = ResponseManager.GetResponse(input, _userName);
+
+            // Add sentiment-aware enhancements
+            if (ShouldEnhanceResponse(input))
+            {
+                response = EnhanceResponse(response, input);
+            }
+
+            // Add personalized touches
+            if (ShouldPersonalizeResponse())
+            {
+                response = PersonalizeResponse(response);
+            }
+
+            return response;
         }
 
+        private bool ShouldEnhanceResponse(string input) =>
+            (input.Contains("?") || input.Contains("explain")) &&
+            !string.IsNullOrEmpty(_currentTopic);
+
+        private string EnhanceResponse(string response, string input)
+        {
+            if (input.Contains("simpl") || _currentSentiment == "confused")
+                return $"{response}\n\n{ResponseManager.GetSimplifiedExplanation(_currentTopic)}";
+
+            if (input.Contains("reassure") || _currentSentiment == "anxious")
+                return $"{response}\n\n{ResponseManager.GetReassuringExplanation(_currentTopic)}";
+
+            return $"{response}\n\n{ResponseManager.GetDetailedExplanation(_currentTopic)}";
+        }
+
+        private bool ShouldPersonalizeResponse() =>
+            _userPreferences.TryGetValue("interest", out _) &&
+            _random.Next(4) == 0; // 25% chance
+
+        private string PersonalizeResponse(string response)
+        {
+            string topic = _userPreferences["interest"];
+            string[] personalizations =
+            {
+                $"As someone interested in {topic}, consider this: ",
+                $"Since you care about {topic}, note that: ",
+                $"This relates to your interest in {topic}: "
+            };
+            return personalizations[_random.Next(personalizations.Length)] + response;
+        }
+        #endregion
+
+        #region User Interaction
         private void DisplayUserInput(string input)
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -227,68 +178,19 @@ namespace POE_Part1_Chatbot
             Console.ResetColor();
         }
 
-        private string GenerateContextAwareResponse(string input)
+        private void DisplayResponse(string response)
         {
-            string baseResponse = ResponseManager.GetResponse(input, _userName);
-
-            if (_userExpressedConfusion && !string.IsNullOrEmpty(_currentTopic))
-            {
-                return $"{baseResponse}\n\nLet me explain more about {_currentTopic}. " +
-                      ResponseManager.GetDetailedExplanation(_currentTopic);
-            }
-
-            if (!string.IsNullOrEmpty(_currentTopic) &&
-                (input.Contains("more") || input.Contains("what else")))
-            {
-                return $"{baseResponse}\n\nSince we're discussing {_currentTopic}, " +
-                      ResponseManager.GetRelatedInformation(_currentTopic);
-            }
-
-            if (!string.IsNullOrEmpty(_currentTopic) &&
-                _random.Next(4) == 0) // 25% chance to personalize
-            {
-                return PersonalizeResponse(baseResponse, _currentTopic);
-            }
-
-            return baseResponse;
-        }
-
-        private string PersonalizeResponse(string response, string topic)
-        {
-            string[] personalizations =
-            {
-                $"As someone interested in {topic}, you might find this relevant: ",
-                $"Since we've been discussing {topic}, you should know: ",
-                $"This relates to your interest in {topic}: "
-            };
-            return personalizations[_random.Next(personalizations.Length)] + response;
-        }
-
-        private void DisplayResponse(string response, string input)
-        {
-            if (!_userPreferences.ContainsKey("interest"))
-            {
-                response += "\n(You can tell me your favorite topic anytime by saying: 'My favorite topic is phishing'.)";
-            }
-
-            if (_userPreferences.TryGetValue("interest", out string favTopic))
-            {
-                if (input.Contains("tip") || input.Contains("advice"))
-                {
-                    response += $"\nBy the way, since you're interested in {favTopic}, would you like tips on that?";
-                    _awaitingTipConfirmation = true;
-                }
-
-                if (input.Contains("who am I") || input.Contains("what's my name"))
-                {
-                    response += $"\nYou're {_userName}, and your favorite cyber topic is {favTopic}.";
-                }
-            }
-
-            Console.ForegroundColor = ConsoleColor.Cyan;
+            // Apply sentiment-based coloring
+            Console.ForegroundColor = ResponseManager.GetSentimentColor(_currentSentiment);
             Console.WriteLine($"\n--> Bot");
             ConsoleUI.PrintBorder(response);
             Console.ResetColor();
+
+            // Add suggestions if no topic set
+            if (!_userPreferences.ContainsKey("interest"))
+            {
+                ConsoleUI.PrintBorder("(Try: 'My favorite topic is privacy')");
+            }
         }
 
         private void HandleTipConfirmation(string input)
@@ -298,45 +200,110 @@ namespace POE_Part1_Chatbot
             ConsoleUI.PromptInput();
             string confirmInput = Console.ReadLine()?.ToLower().Trim();
 
-            string[] affirmatives = { "yes", "yes please", "sure", "ok", "okay", "yep", "yeah", "alright" };
-            string[] negatives = { "no", "nope", "not now", "later", "maybe later" };
-
-            if (affirmatives.Any(a => confirmInput.Contains(a)))
+            if (ResponseManager.IsAffirmative(confirmInput))
             {
-                string tipsResponse;
-
-                if (!string.IsNullOrEmpty(_currentTopic))
-                {
-                    tipsResponse = $"About {_currentTopic}, here's a tip: " +
-                                 ResponseManager.GetRandomTip(_currentTopic + " tips");
-                }
-                else if (_userPreferences.TryGetValue("interest", out string favTopic))
-                {
-                    tipsResponse = ResponseManager.GetResponse($"{favTopic} tips", _userName);
-                }
-                else
-                {
-                    tipsResponse = "Here's a general security tip: " +
-                                 ResponseManager.GetRandomTip("password tips");
-                }
-
-                DisplayResponse(tipsResponse, input);
-            }
-            else if (negatives.Any(n => confirmInput.Contains(n)))
-            {
-                string[] noProblemResponses =
-                {
-                    "Okay, let me know if you want tips later!",
-                    "No problem! You can ask anytime.",
-                    "Sure thing! I'm here when you're ready.",
-                    "Understood! Just ask when you need tips.",
-                    "Got it! The offer stands whenever you're interested."
-                };
-
-                string noProblemResponse = noProblemResponses[_random.Next(noProblemResponses.Length)];
-                DisplayResponse(noProblemResponse, input);
+                string tips = GetContextualTips();
+                DisplayResponse(tips);
             }
             _awaitingTipConfirmation = false;
         }
+
+        private string GetContextualTips()
+        {
+            if (!string.IsNullOrEmpty(_currentTopic))
+                return ResponseManager.GetRandomTip(_currentTopic);
+
+            return _userPreferences.TryGetValue("interest", out string topic)
+                ? ResponseManager.GetRandomTip(topic)
+                : ResponseManager.GetRandomTip("security");
+        }
+        #endregion
+
+        #region Topic Management
+        private bool TryUpdateUserTopic(string input)
+        {
+            string newTopic = input.Contains("my favorite topic is")
+                ? input.Split(new[] { "my favorite topic is" }, StringSplitOptions.RemoveEmptyEntries)
+                      .LastOrDefault()?.Trim()
+                : input.StartsWith("i'm interested in") || input.StartsWith("i am interested in")
+                    ? input.Replace("i'm interested in", "")
+                          .Replace("i am interested in", "")
+                          .Trim()
+                    : null;
+
+            if (!string.IsNullOrEmpty(newTopic))
+            {
+                UpdateUserTopic(newTopic);
+                return true;
+            }
+            return false;
+        }
+
+        private void UpdateUserTopic(string newTopic)
+        {
+            _userPreferences["interest"] = newTopic;
+            _currentTopic = newTopic;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            ConsoleUI.PrintBorder($"I'll remember you're interested in {newTopic}. " +
+                                ResponseManager.GetTopicImportance(newTopic));
+            Console.ResetColor();
+        }
+
+        private bool HandleUncertainTopic(string input)
+        {
+            if (input.Contains("don't know my favorite topic") ||
+                input.Contains("still exploring"))
+            {
+                ConsoleUI.PrintBorder("No problem! Explore topics at your own pace.");
+                return true;
+            }
+            return false;
+        }
+        #endregion
+
+        #region Initialization
+        private void InitializeUser()
+        {
+            ConsoleUI.PrintDivider();
+            Console.Write("Please enter your name: ");
+            _userName = Console.ReadLine()?.Trim();
+            _userPreferences["name"] = _userName;
+
+            ConsoleUI.TypeLine($"\nWelcome, {_userName}! I'm here to help you stay cyber-safe.");
+
+            Console.Write("What is your favorite cyber security topic? ");
+            string topic = Console.ReadLine()?.Trim().ToLower();
+            if (!string.IsNullOrWhiteSpace(topic))
+            {
+                UpdateUserTopic(topic);
+            }
+        }
+
+        public void ShowMenu()
+        {
+            var topics = ResponseManager.GetAllTopics();
+            ConsoleUI.PrintBorder("Available Cybersecurity Topics:");
+
+            foreach (var topic in topics)
+            {
+                string importance = ResponseManager.GetTopicImportance(topic);
+                ConsoleUI.PrintWithColor($"• {topic.PadRight(25)} {importance}",
+                                       ResponseManager.GetSentimentColor("positive"));
+            }
+
+            ConsoleUI.PrintBorder("\nYou can:");
+            ConsoleUI.PrintWithColor("1. Ask about any topic", ConsoleColor.Cyan);
+            ConsoleUI.PrintWithColor("2. Get a random security tip", ConsoleColor.Cyan);
+            ConsoleUI.PrintWithColor("3. Exit", ConsoleColor.Cyan);
+            ConsoleUI.PrintBorder("What would you like to do?");
+        }
+
+        private void DisplayExitMessage()
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            ConsoleUI.TypeLine("Stay safe online! Goodbye.");
+            Console.ResetColor();
+        }
+        #endregion
     }
 }

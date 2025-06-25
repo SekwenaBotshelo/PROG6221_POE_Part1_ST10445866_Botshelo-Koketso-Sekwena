@@ -75,6 +75,13 @@ namespace POE_Part1_Chatbot
             Console.WriteLine(bottom);
         }
 
+        public static void PrintWithColor(string message, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+
         private static List<string> WrapText(string text, int maxLineLength)
         {
             List<string> lines = new List<string>();
